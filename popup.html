@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindful Web</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+      <div class="header">
+          <div class="app-icon">
+              <img src="icons/icon128.png" alt="Mindful Web icon" width="32" height="32" />
+          </div>
+          <h1>Mindful Web</h1>
+      </div>
+
+    <div class="mode-toggle">
+      <button id="calmMode" class="mode-btn active" data-mode="calm">
+        <span class="label">Calm</span>
+      </button>
+      <button id="focusMode" class="mode-btn" data-mode="focus">
+        <span class="label">Focus</span>
+      </button>
+    </div>
+
+    <div id="calmFeatures" class="features-container">
+      <div class="mode-heading">
+        <h2 class="mode-title calm-title">Calm Features</h2>
+        <img src="icons/mascot_reframe.png" alt="Calm mascot" class="mode-avatar mode-avatar--calm">
+      </div>
+      <button class="feature-btn calm-btn" id="calmSummarize">
+        <span class="btn-text">Calm Summarize</span>
+        <span class="btn-desc">Soften the page content</span>
+      </button>
+      <button class="feature-btn calm-btn" id="breathe">
+        <span class="btn-text">Breathe</span>
+        <span class="btn-desc">Guided breathing exercise</span>
+      </button>
+      <button class="feature-btn calm-btn" id="journal">
+        <span class="btn-text">Journal</span>
+        <span class="btn-desc">Reflect through writing</span>
+      </button>
+    </div>
+
+    <div id="focusFeatures" class="features-container hidden">
+      <div class="mode-heading">
+        <h2 class="mode-title focus-title">Focus Features</h2>
+        <img src="icons/mascot_journal.png" alt="Focus mascot" class="mode-avatar">
+      </div>
+      <div class="intent-input">
+        <label for="browsingIntent">What's your goal today?</label>
+        <input type="text" id="browsingIntent" placeholder="e.g., Research productivity tips">
+        <div class="intent-button-container">
+          <button class="intent-btn focus-btn" id="setIntent">
+            <span class="btn-text">Set Intent</span>
+          </button>
+        </div>
+      </div>
+      <div class="info-text">
+        <p><strong>Usefulness Bar:</strong> Automatically tracks and scores each page for your goal</p>
+        <p><strong>Automatic Refocus:</strong> We'll gently remind you if you're drifting away</p>
+      </div>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
