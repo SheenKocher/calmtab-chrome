@@ -45,8 +45,7 @@ Welcome to Mindful Web, a Chrome extension designed to help you browse with inte
   - **Requires an Origin Trial token** for access.  
   - Add it using:  
     ```html
-    <meta http-equiv="origin-trial" content="Ai4Z74hX0/WBdK9qjJi+R9BIBodgmF6cdVci/n3vH/COgu6zzBTMPi4p1RM8KoujZ+rv1ZPCHbm3H823p3aAHQ4AAABjeyJvcmlnaW4iOiJodHRwczovL2FudXNoa2FyYXRuYXBhcmtoaS5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IkFJUmV3cml0ZXJBUEkiLCJleHBpcnkiOjE3NzY3Mjk2MDB9
-">
+    <meta http-equiv="origin-trial" content="Ai4Z74hX0/WBdK9qjJi+R9BIBodgmF6cdVci/n3vH/COgu6zzBTMPi4p1RM8KoujZ+rv1ZPCHbm3H823p3aAHQ4AAABjeyJvcmlnaW4iOiJodHRwczovL2FudXNoa2FyYXRuYXBhcmtoaS5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IkFJUmV3cml0ZXJBUEkiLCJleHBpcnkiOjE3NzY3Mjk2MDB9">
     ```
   - Without this token, only the Summarizer and Prompt features will work.
 
