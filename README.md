@@ -1,4 +1,4 @@
-# 🧘 Mindful Web - Chrome Extension
+# Mindful Web - Chrome Extension
 
 Welcome to Mindful Web, a Chrome extension designed to help you browse with intention—whether you need to calm your mind or sharpen your focus.
 
@@ -7,16 +7,12 @@ Welcome to Mindful Web, a Chrome extension designed to help you browse with inte
 ### Calm Mode
 - Calm Summarize: Get gentle, calming summaries of any web page.
 - Breathe: Follow a guided breathing exercise with soothing visuals.
-- Affirm Me: Receive gentle, encouraging affirmations.
+- Journal: Save your reflections and thoughts
 
 ### Focus Mode
 - Set Intent: Define your browsing goal for the session.
 - Usefulness Score: Instantly see how relevant a page is to your goal.
 - Refocus Me: Get reminders to stay on track if you drift.
-
-### Auto-Detection
-- The extension can suggest Focus mode if it detects rapid tab switching.
-- You can toggle this feature on or off in the popup.
 
 ---
 
