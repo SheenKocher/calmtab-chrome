@@ -8,6 +8,13 @@ let currentMode = null;
 let usefulnessBarAutoCollapsed = false;
 let snoozedUrl = null;
 
+// blink buddy vars
+let blinkBuddyRunning = false;
+let blinkBuddyInterval = null;
+const BLINK_MASCOT_OPEN = 'icons/mascot_eye_open.png';  
+const BLINK_MASCOT_CLOSED = 'icons/mascot_eye_relaxed.png';     
+
+
 // Automatic refocus tracking
 let consecutiveLowScores = 0;
 let timeOnLowScorePage = 0;
@@ -847,6 +854,9 @@ async function handleFeature(feature, mode, browsingIntent) {
       case 'journal':
         return await showJournal();
       
+      case 'blinkBuddy':
+        return await showBlinkBuddy();
+      
       default:
         return { success: false, error: 'Unknown feature' };
     }
@@ -992,6 +1002,170 @@ async function showBreathingExercise() {
   
   return { success: true, message: 'Breathing exercise started' };
 }
+
+function buildBlinkBuddySidebar() {
+  const openUrl = chrome.runtime.getURL(BLINK_MASCOT_OPEN);
+  const closedUrl = chrome.runtime.getURL(BLINK_MASCOT_CLOSED);
+
+  return `
+    <div class="blinkbuddy-container">
+      <div class="blinkbuddy-mascot-wrap">
+        <img id="blinkbuddy-mascot" src="${closedUrl}" alt="Blink buddy mascot" />
+      </div>
+
+      <p class="blinkbuddy-text">
+        A gentle buddy that blinks softly in the corner — a subtle reminder for your eyes.
+      </p>
+
+      <div class="blinkbuddy-controls">
+        <button class="blinkbuddy-btn" id="blinkbuddy-toggle">
+          ${blinkBuddyRunning ? 'Stop' : 'Start'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// function startBlinkBuddy(sidebar){
+//   const mascotImg = sidebar?.querySelector('#blinkbuddy-mascot');
+//   if (!mascotImg) return;
+//   const openUrl = chrome.runtime.getURL(BLINK_MASCOT_OPEN);
+//   const closedUrl = chrome.runtime.getURL(BLINK_MASCOT_CLOSED);
+//   blinkBuddyRunning = true;
+//   const scheduleNext = () => {
+//     if(!blinkBuddyRunning) return;
+//     const delay = 8000 + Math.floor(Math.random()*7000);
+//     blinkBuddyInterval = setTimeout(() => {
+//       if (!blinkBuddyRunning) return ;
+//       mascotImg.src = openUrl;
+//       setTimeout(()=>{
+//         mascotImg.src = closedUrl;
+//         scheduleNext();
+//       }, 350);
+//     },delay);
+//   };
+//   scheduleNext();
+// }
+
+function startBlinkBuddy(sidebar) {
+  const mascotImg = sidebar?.querySelector('#blinkbuddy-mascot');
+  if (!mascotImg) return;
+
+  const openUrl = chrome.runtime.getURL(BLINK_MASCOT_OPEN);
+  const closedUrl = chrome.runtime.getURL(BLINK_MASCOT_CLOSED);
+
+  stopBlinkBuddy(); // clear any previous timer
+  blinkBuddyRunning = true;
+
+  const doBlink = () => {
+    if (!blinkBuddyRunning) return;
+
+    // start “soft” transition
+    mascotImg.style.opacity = '0.85';
+    mascotImg.style.transform = 'scaleY(0.95)';
+
+    // close eyes quickly
+    setTimeout(() => {
+      if (!blinkBuddyRunning) return;
+      mascotImg.src = closedUrl;
+    }, 60);
+
+    // reopen + restore
+    setTimeout(() => {
+      if (!blinkBuddyRunning) return;
+      mascotImg.src = openUrl;
+      mascotImg.style.opacity = '1';
+      mascotImg.style.transform = 'scaleY(1)';
+    }, 180);
+  };
+
+  const scheduleNext = () => {
+    if (!blinkBuddyRunning) return;
+
+    const delay = 5000 + Math.floor(Math.random() * 5000); // 5–10s (less dead time)
+    blinkBuddyInterval = setTimeout(() => {
+      doBlink();
+      scheduleNext();
+    }, delay);
+  };
+
+  // optional: immediate blink so user feels it started
+  doBlink();
+  scheduleNext();
+}
+
+
+function stopBlinkBuddy() {
+  blinkBuddyRunning = false;
+  if (blinkBuddyInterval) {
+    clearTimeout(blinkBuddyInterval);
+    blinkBuddyInterval = null;
+  }
+}
+
+// async function showBlinkBuddy(){
+//   const content = buildBlinkBuddySidebar();
+//   showSidebar('Blink Buddy', content, 'calm');
+//   const sidebar = currentOverlay;
+//   if (!sidebar) {
+//     return { success: false, error: 'Sidebar not available' };
+//   }
+//   const toggleBtn = sidebar.querySelector('#blinkbuddy-toggle');
+//   const syncButton = () => {
+//     if (toggleBtn) toggleBtn.textContent = blinkBuddyRunning ? 'Stop' : 'Start';
+//   };
+//   toggleBtn?.addEventListener('click', () => {
+//     if (blinkBuddyRunning) {
+//       stopBlinkBuddy();
+//     } else {
+//       startBlinkBuddy(sidebar);
+//     }
+//     syncButton();
+//   });
+//   const closeBtn = sidebar.querySelector('.mindful-sidebar-close');
+//   closeBtn?.addEventListener('click', () => {
+//     stopBlinkBuddy();
+//   });
+//   syncButton();
+//   return { success: true, message: 'Blink Buddy opened' };
+// }
+async function showBlinkBuddy() {
+  const content = buildBlinkBuddySidebar();
+  showSidebar('Blink Buddy', content, 'calm');
+
+  const sidebar = currentOverlay;
+  if (!sidebar) return { success: false, error: 'Sidebar not available' };
+
+  const syncButton = () => {
+    const btn = sidebar.querySelector('#blinkbuddy-toggle');
+    if (btn) btn.textContent = blinkBuddyRunning ? 'Stop' : 'Start';
+  };
+
+  // Event delegation: handle clicks inside sidebar reliably
+  sidebar.addEventListener('click', (e) => {
+    const target = e.target;
+
+    if (target && target.id === 'blinkbuddy-toggle') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (blinkBuddyRunning) {
+        stopBlinkBuddy(sidebar);
+      } else {
+        startBlinkBuddy(sidebar);
+      }
+      syncButton();
+    }
+  });
+
+  // cleanup when sidebar is closed
+  const closeBtn = sidebar.querySelector('.mindful-sidebar-close');
+  closeBtn?.addEventListener('click', () => stopBlinkBuddy(sidebar));
+
+  syncButton();
+  return { success: true, message: 'Blink Buddy opened' };
+}
+
 
 const JOURNAL_STORAGE_KEY = 'calmJournalEntries';
 const JOURNAL_MOODS = ['Calm', 'Grateful', 'Productive', 'Stressed', 'Hopeful', 'Low', 'Reflective', 'Proud', 'Conflicted'];
