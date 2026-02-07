@@ -1253,3 +1253,44 @@ body.mindful-sidebar-resizing * {
   width: 100%;
   height: 100%;
 }
+
+.blinkbuddy-container{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  color: #111111;
+}
+
+.blinkbuddy-mascot-wrap{
+  display:flex;
+  justify-content:center;
+  padding-top:6px;
+}
+
+#blinkbuddy-mascot{
+  width: 140px;
+  height: auto;
+  transition: opacity 120ms ease-in-out,transform 120ms ease-in-out;
+
+}
+
+.blinkbuddy-text{
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.blinkbuddy-controls{
+  display:flex;
+  justify-content:center;
+}
+
+.blinkbuddy-btn{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: white;
+  cursor:pointer;
+  color: black
+}
+
