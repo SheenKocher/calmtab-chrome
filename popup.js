@@ -34,6 +34,7 @@ function setupEventListeners() {
   document.getElementById('calmSummarize').addEventListener('click', () => executeFeature('calmSummarize'));
   document.getElementById('breathe').addEventListener('click', () => executeFeature('breathe'));
   document.getElementById('journal').addEventListener('click', () => executeFeature('journal'));
+  document.getElementById('blinkBuddy').addEventListener('click', () => executeFeature('blinkBuddy'));
 
   document.getElementById('setIntent').addEventListener('click', setBrowsingIntent);
 
