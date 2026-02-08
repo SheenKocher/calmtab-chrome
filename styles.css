@@ -175,6 +175,7 @@
     margin-left: 2px;
 }
 
+.journal-save-rewrite-btn,
 .journal-save-btn,
 .journal-download-btn {
   background: linear-gradient(90deg, #84a4b6 60%, #abdef8 100%);
@@ -186,13 +187,52 @@
   font-weight: 600;
   margin-right: 8px;
   box-shadow: 0 2px 8px rgba(132, 164, 182, 0.10);
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s, transform 0.2sv;
 }
 
+.journal-rewrite-btn:hover ,
+.journal-save-rewrite-btn:hover,
 .journal-save-btn:hover,
 .journal-download-btn:hover {
   background: linear-gradient(90deg, #6e93a6 60%, #84a4b6 100%);
   transform: translateY(-2px) scale(1.03);
+}
+
+.journal-save-btn,
+.journal-rewrite-btn,
+.journal-save-rewrite-btn {
+  text-decoration: none !important;
+}
+
+.journal-rewrite-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.journal-save-rewrite-btn {
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.journal-rewrite-btn {
+  margin-top: 8px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #84a4b6 60%, #abdef8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 8px;
+  box-shadow: 0 2px 8px rgba(132, 164, 182, 0.10);
+  transition: background 0.2s, transform 0.2sv;
+}
+.journal-save-btn:focus,
+.journal-rewrite-btn:active,
+.journal-save-rewrite-btn:active {
+  color: #111827 !important;
 }
 
 .journal-entry {
