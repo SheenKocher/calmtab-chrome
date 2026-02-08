@@ -15,6 +15,7 @@ const BLINK_MASCOT_OPEN = 'icons/mascot_eye_open.png';
 const BLINK_MASCOT_CLOSED = 'icons/mascot_eye_relaxed.png';     
 
 
+
 // Automatic refocus tracking
 let consecutiveLowScores = 0;
 let timeOnLowScorePage = 0;
@@ -1169,6 +1170,7 @@ async function showBlinkBuddy() {
 
 const JOURNAL_STORAGE_KEY = 'calmJournalEntries';
 const JOURNAL_MOODS = ['Calm', 'Grateful', 'Productive', 'Stressed', 'Hopeful', 'Low', 'Reflective', 'Proud', 'Conflicted'];
+const NEGATIVE_JOURNAL_MOODS = new Set(['stressed', 'low', 'conflicted']);
 
 async function showJournal() {
   const entries = await getJournalEntries();
@@ -1216,11 +1218,24 @@ function buildJournalSidebar(entries) {
     <div class="journal-container">
     <div class="journal-new-entry">
       <textarea id="journal-entry-input" class="journal-textarea" placeholder="How are you feeling today?"></textarea>
-      <div class="journal-controls">
-        <div class="journal-auto-mood" id="journal-auto-mood">Mood: Calm</div>
-        <button class="journal-save-btn">Save Entry</button>
-      </div>
-      <p class="journal-feedback" id="journal-feedback"></p>
+    <div class="journal-controls">
+  <div class="journal-auto-mood" id="journal-auto-mood">Mood: Calm</div>
+  <button class="journal-save-btn">Save Entry</button>
+</div>
+<button class="journal-rewrite-btn" id="journal-rewrite-btn" style="display:none;">
+  Rewrite gently
+</button>
+<div class="journal-rewrite-preview" id="journal-rewrite-preview" style="display:none;">
+  <div class="journal-rewrite-box" id="journal-rewrite-box"></div>
+  <div class="journal-rewrite-actions">
+    <button class="journal-save-rewrite-btn" id="journal-save-rewrite-btn">
+      Save gentle rewrite
+    </button>
+  </div>
+</div>
+
+<p class="journal-feedback" id="journal-feedback"></p>
+
     </div>
       <div class="journal-actions">
         <button class="journal-download-btn">Download PDF</button>
@@ -1238,6 +1253,15 @@ function attachJournalHandlers(sidebar, initialEntries) {
   const downloadBtn = sidebar.querySelector('.journal-download-btn');
   const feedbackEl = sidebar.querySelector('#journal-feedback');
   const autoMoodEl = sidebar.querySelector('#journal-auto-mood');
+  const rewriteBtn = sidebar.querySelector('#journal-rewrite-btn');
+  const rewritePreview = sidebar.querySelector('#journal-rewrite-preview');
+  const rewriteBox = sidebar.querySelector('#journal-rewrite-box');
+  const saveRewriteBtn = sidebar.querySelector('#journal-save-rewrite-btn');
+
+
+  let rewrittenText = '';
+
+
   let detectedMood = JOURNAL_MOODS[0];
   let detectTimer = null;
   let lastAnalyzedText = '';
@@ -1252,13 +1276,21 @@ function attachJournalHandlers(sidebar, initialEntries) {
     if (!autoMoodEl) return;
     autoMoodEl.textContent = pending ? 'Mood: Detecting…' : `Mood: ${mood}`;
   };
-
+  const resetRewriteState = () => {
+    rewrittenText = '';
+    if (rewritePreview) rewritePreview.style.display = 'none';
+    if (rewriteBox) rewriteBox.innerHTML = '';
+  }; 
   const detectMood = async () => {
     const text = (textarea?.value || '').trim();
     if (!text) {
       detectedMood = JOURNAL_MOODS[0];
       lastAnalyzedText = '';
       updateAutoMoodDisplay(detectedMood);
+      if (rewriteBtn) rewriteBtn.style.display = 'none';
+      if (rewritePreview) rewritePreview.style.display = 'none';
+      rewrittenText = '' ;
+      resetRewriteState();
       return;
     }
     if (text === lastAnalyzedText) return;
@@ -1280,6 +1312,16 @@ function attachJournalHandlers(sidebar, initialEntries) {
       detectedMood = JOURNAL_MOODS[0];
     }
     updateAutoMoodDisplay(detectedMood);
+    const isNegativeMood = NEGATIVE_JOURNAL_MOODS.has(String(detectedMood).toLocaleLowerCase());
+    console.log('[Journal] Negative mood?', isNegativeMood);
+    if (rewriteBtn){
+      // rewriteBtn.style.display = isNegativeMood ? ' ' : 'none';
+      rewriteBtn.style.display = isNegativeMood ? 'inline-block' : 'none';
+
+    }
+    rewrittenText = '';
+    if (rewritePreview) rewritePreview.style.display = 'none';
+    if (rewriteBox) rewriteBox.innerHTML = '';
   };
 
   textarea?.addEventListener('input', () => {
@@ -1290,16 +1332,19 @@ function attachJournalHandlers(sidebar, initialEntries) {
   });
 
   saveBtn?.addEventListener('click', async () => {
-    const text = (textarea?.value || '').trim();
-    if (!text) {
+    const originalText = (textarea?.value || '').trim();
+    if (!originalText) {
       setFeedback('Write a few words before saving.', 'error');
       return;
     }
+    if (rewriteBtn) rewriteBtn.style.display = 'none';
+    resetRewriteState();
+
     await detectMood();
     const mood = detectedMood || JOURNAL_MOODS[0];
     const newEntry = {
       id: (crypto?.randomUUID && crypto.randomUUID()) || `entry-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      text,
+      text: originalText,
       mood,
       createdAt: new Date().toISOString()
     };
@@ -1310,6 +1355,43 @@ function attachJournalHandlers(sidebar, initialEntries) {
     detectedMood = JOURNAL_MOODS[0];
     lastAnalyzedText = '';
     updateAutoMoodDisplay(detectedMood);
+    if (rewriteBtn) rewriteBtn.style.display = 'none';
+    rewrittenText = '';
+    if (rewritePreview) rewritePreview.style.display = 'none';
+    const rewriteBox = sidebar.querySelector('#journal-rewrite-box');
+    if (rewriteBox) rewriteBox.innerHTML = '';
+    showJournal();
+  });
+  
+  saveRewriteBtn?.addEventListener('click',async() => {
+    const originalText = (textarea?.value || '').trim();
+    if(!originalText){
+    setFeedback('Write a few words before saving.', 'error');
+    return;
+    }
+    if(!rewrittenText){
+    setFeedback('Rewrite not ready yet.', 'error');
+    return;
+    }
+    await detectMood();
+    const mood = detectedMood || JOURNAL_MOODS[0]
+    const newEntry = {
+      id: (crypto?.randomUUID && crypto.randomUUID()) ||
+          `entry-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      text: rewrittenText,
+      mood,
+      createdAt: new Date().toISOString()
+    };
+    const enteries = await getJournalEntries();
+    await saveJournalEntries([...enteries, newEntry]);
+    setFeedback('Gentle rewrite saved.', 'success');
+    if (textarea) textarea.value = '';
+    detectedMood = JOURNAL_MOODS[0];
+    lastAnalyzedText = '';
+    updateAutoMoodDisplay(detectedMood);
+    if (rewriteBtn) rewriteBtn.style.display = 'none';
+    resetRewriteState();
+
     showJournal();
   });
 
@@ -1335,6 +1417,37 @@ function attachJournalHandlers(sidebar, initialEntries) {
       setFeedback('Could not generate PDF right now.', 'error');
     }
   });
+
+  rewriteBtn?.addEventListener('click',async () => {
+    console.log('[Journal] Rewrite gently clicked')
+    const text = textarea?.value || (''.trim());
+    if(!text) return;
+    setFeedback('creating a gentler version...','info')
+    try{
+      const result = await chrome.runtime.sendMessage({
+        action: 'rewriteJournalEntryGently',
+        text
+    });
+    console.log('[Journal] rewrite result =', result);
+    if(!result || !result.success){
+      throw new Error(result?.error || 'Rewrite failed');
+    }
+    rewrittenText = result.rewritten || '';
+
+    if (rewriteBox) {
+      rewriteBox.innerHTML = escapeHtml(rewrittenText).replace(/\n/g, '<br>');
+    }
+    if (rewritePreview) {
+      rewritePreview.style.display = '';
+    }
+    setFeedback('Rewrite ready. Choose which one to save.', 'success');
+    }catch (error) {
+      console.warn('Rewrite gently failed:', error);
+      setFeedback('Could not rewrite right now.', 'error');
+    }
+  });
+
+  
 
   sidebar.querySelectorAll('.journal-delete-btn').forEach(button => {
     button.addEventListener('click', async () => {
