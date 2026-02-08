@@ -14,6 +14,7 @@ let rewriterAvailability = null;
 let rewriterInitPromise = null;
 
 const JOURNAL_MOOD_OPTIONS = ['Calm', 'Grateful', 'Productive', 'Stressed', 'Hopeful', 'Low', 'Reflective', 'Proud', 'Conflicted'];
+const NEGATIVE_MOODS = new Set(['stressed','low','conflicted']);
 
 function setupContextMenus() {
   if (!chrome?.contextMenus) return;
@@ -161,6 +162,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
   }
+  if (request.action === 'rewriteJournalEntryGently') {
+    rewriteJournalEntryGently(request.text || '')
+    .then(result => sendResponse(result))
+    .catch(error => sendResponse({success : false, error: error.message}));
+    return true;
+  }
+  
+
+  
   
 });
 
@@ -361,10 +371,33 @@ Create a calming summary that helps the reader feel more peaceful and centered. 
   }
 }
 
+// async function classifyJournalMood(text = '', moods = []) {
+//   try {
+//     const lm = await ensureLanguageModel();
+//     const availableMoods = Array.isArray(moods) && moods.length ? moods : JOURNAL_MOOD_OPTIONS;
+//     const prompt = `Pick the single most appropriate mood from this list: ${availableMoods.join(', ')}.
+// Only return the mood word with no punctuation.
+
+// Entry:
+// """
+// ${text}
+// """`;
+//     const response = await lm.prompt(prompt);
+//     const mood = extractMoodFromResponse(response, availableMoods);
+//     return { success: true, mood };
+//   } catch (error) {
+//     console.error('Error classifying journal mood:', error);
+//     return { success: false, error: error.message };
+//   }
+// }
+
+
 async function classifyJournalMood(text = '', moods = []) {
   try {
     const lm = await ensureLanguageModel();
-    const availableMoods = Array.isArray(moods) && moods.length ? moods : JOURNAL_MOOD_OPTIONS;
+    const availableMoods =
+      Array.isArray(moods) && moods.length ? moods : JOURNAL_MOOD_OPTIONS;
+
     const prompt = `Pick the single most appropriate mood from this list: ${availableMoods.join(', ')}.
 Only return the mood word with no punctuation.
 
@@ -372,14 +405,55 @@ Entry:
 """
 ${text}
 """`;
+
     const response = await lm.prompt(prompt);
     const mood = extractMoodFromResponse(response, availableMoods);
-    return { success: true, mood };
+
+    const shouldOfferRewrite = NEGATIVE_MOODS.has(
+      String(mood).toLowerCase()
+    );
+
+    return { success: true, mood, shouldOfferRewrite };
   } catch (error) {
     console.error('Error classifying journal mood:', error);
     return { success: false, error: error.message };
   }
 }
+
+async function rewriteJournalEntryGently(text = '') {
+  try {
+    const lm = await ensureLanguageModel();
+
+    const prompt = `You are a compassionate writing assistant.
+
+Rewrite the user's journal entry in a calmer, kinder tone.
+Keep the meaning the same.
+Keep the entry in first person (if user entry is in first person)
+Do not give advice.
+Do not use quotes.
+Return only the rewritten text.
+
+Entry:
+"""
+${text}
+"""`;
+
+    const rewritten = (await lm.prompt(prompt))?.trim();
+
+    return {
+      success: true,
+      rewritten: rewritten || text
+    };
+  } catch (error) {
+    console.error('[BG] rewrite failed:', error);
+    return {
+      success: false,
+      error: error.message || 'Rewrite failed'
+    };
+  }
+}
+
+
 
 function extractMoodFromResponse(response, moods) {
   const cleaned = (response || '').trim().toLowerCase();
