@@ -7,7 +7,8 @@ Welcome to Mindful Web, a Chrome extension designed to help you browse with inte
 ### Calm Mode
 - Calm Summarize: Get gentle, calming summaries of any web page.
 - Breathe: Follow a guided breathing exercise with soothing visuals.
-- Journal: Save your reflections and thoughts
+- Journal: A lightweight journaling space with mood awareness and optional gentle rewrites.
+- Blink Buddy: A gentle blinking reminder for healthier screen time.
 
 ### Focus Mode
 - Set Intent: Define your browsing goal for the session.
